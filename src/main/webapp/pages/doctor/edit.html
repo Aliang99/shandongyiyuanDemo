@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>修改医生--中软高科-2015</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/style.css" />
+    <script type="text/javascript" src="../../Js/jquery.js"></script>
+    <script type="text/javascript" src="../../Js/bootstrap.js"></script>
+    <script type="text/javascript" src="../../Js/ckform.js"></script>
+    <script type="text/javascript" src="../../Js/common.js"></script>
+    <script type="text/javascript" src="../../Js/ckeditor/ckeditor.js"></script>
+ 
+
+    <style type="text/css">
+        body {
+            padding-bottom: 40px;
+        }
+        .sidebar-nav {
+            padding: 9px 0;
+        }
+
+        @media (max-width: 980px) {
+            /* Enable use of floated navbar text */
+            .navbar-text.pull-right {
+                float: none;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        }
+
+
+    </style>
+    <script type="text/javascript">
+    $(function () {       
+		$('#backid').click(function(){
+				window.location.href="index.html";
+		 });
+    });
+    </script>
+</head>
+<body>
+<form class="definewidth m20" id="myForm">
+<table class="table table-bordered table-hover definewidth m10 tableData">
+    <tr>
+        <td width="10%" class="tableleft">姓名</td>
+        <td><input type="text" name="pname" value="程俊"/></td>
+    </tr>
+    
+    <tr>
+        <td width="10%" class="tableleft">身份证号</td>
+        <td><input type="text" name="pname" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">手机</td>
+        <td><input type="text" name="pname" value="15343457897"/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">座机</td>
+        <td><input type="text" name="pname" value="01088586875"/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">性别</td>
+        <td><input type="radio" name="pname" value="" checked/>男&nbsp;&nbsp;&nbsp;<input type="radio" name="pname" value=""/>女</td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">出生年月</td>
+        <td><input type="text" name="pname" value="1986-09-06"/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">年龄</td>
+        <td ><span id="d_age">28</span>岁</td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">电子邮箱</td>
+        <td><input type="text" name="pname" value="chengjun@msn.com.cn"/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">所属科室</td>
+        <td><select><option>急诊科</option><option>骨科</option><option>血液科</option></select></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">学历</td>
+        <td><select><option>专科</option><option>本科</option><option>博士</option><option>博士后</option></select></td>
+    </tr>
+	<tr>
+        <td width="10%" class="tableleft">备注</td>
+        <td><textarea>此人表现优异工作非常的积极！</textarea></td>
+	</tr>
+    <tr>
+        <td colspan="2">
+			<center>
+				<button type="submit" class="btn btn-primary" type="button">保存</button> &nbsp;&nbsp;<button type="button" class="btn btn-success" name="backid" id="backid">返回列表</button>
+			</center>
+		</td>
+    </tr>
+</table>
+</form>
+<script>
+    var xuelilist = queryXueli();
+    var keshilist = queryKeshi();
+
+    $(function () {
+        var url = document.location.toString();
+        var dId = getValue(url,"dId");
+        // 根据id回显数据
+        $.ajax({
+            type: "GET",
+            url: "/doctor/"+dId,
+            dataType:"json",
+            async:false,
+            success: function(vo) {
+                if (vo.status == 200) { // 请求成功
+                    var obj = vo.obj;
+                    var dId = obj.d_id; //医生id
+                    var dName = obj.d_name; //名字
+                    var idCard = obj.d_idCard; //身份证号
+                    var dPhone = obj.d_phone;//联系电话
+                    var dTelphone = obj.d_telphone;//座机
+                    var dSex = obj.d_sex;//性别 0女 1男
+                    var dBirthday = obj.d_birthday; //出生年月日
+                    var dAge = obj.d_age;//年龄
+                    var eMail = obj.d_email;//邮箱
+                    var kId = obj.k_id; //科室id
+                    var kName = obj.kName; //科室名称
+                    var xid = obj.x_id; // 学历id
+                    var xName = obj.xName; //学历名称
+                    var dDesc = obj.d_desc==null?"暂无":obj.d_desc;//备注
+                    var str="    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">姓名</td>\n" +
+                        "        <td><input type=\"text\" name=\"d_name\" value=\""+dName+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    \n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">身份证号</td>\n" +
+                        "        <td><input type=\"text\" name=\"d_idCard\" value=\""+idCard+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">手机</td>\n" +
+                        "        <td><input type=\"text\" name=\"d_phone\" value=\""+dPhone+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">座机</td>\n" +
+                        "        <td><input type=\"text\" name=\"d_telphone\" value=\""+dTelphone+"\"/></td>\n" +
+                        "    </tr>\n"+
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">性别</td>\n";
+
+                        //性别的单选框处理
+                        if (dSex==0)
+                            str+="        <td><input type=\"radio\" name=\"d_sex\" value=\"1\"/>男&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"d_sex\" value=\"0\" checked/>女</td>\n";
+                        else
+                            str+="        <td><input type=\"radio\" name=\"d_sex\" value=\"1\" checked/>男&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"d_sex\" value=\"0\"/>女</td>\n";
+
+
+                        str+="    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">出生年月</td>\n" +
+                        "        <td><input type=\"date\" name=\"d_birthday\" value=\""+dBirthday+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">年龄</td>\n" +
+                        "        <td><span id='d_age'>"+dAge+"岁</span></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">电子邮箱</td>\n" +
+                        "        <td><input type=\"text\" name=\"d_email\" value=\""+eMail+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">所属科室</td>\n" +
+                        "        <td><select id='keshi'>";
+                        //科室的下拉框选中与其它科室展示的处理
+                        for (var i = 0; i < keshilist.length; i++) {
+                            console.log("keshi:"+keshilist[i]);
+                            if (keshilist[i].k_id == kId){
+                                str+="<option value='"+keshilist[i].k_id+"' selected>"+keshilist[i].keshi_name+"</option>"
+                            }else{
+                                str+="<option value='"+keshilist[i].k_id+"'>"+keshilist[i].keshi_name+"</option>"
+                            }
+                        }
+                        str+="</select></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">学历</td>\n" +
+                        "        <td><select id='xueli'>" ;
+                        //学历下拉框
+                        for (var i = 0; i < xuelilist.length; i++) {
+                            console.log("xueli:"+xuelilist[i]);
+                            if (xuelilist[i].x_id == xid){
+                                str+="<option value='"+xuelilist[i].x_id+"' selected>"+xuelilist[i].x_name+"</option>"
+                            }else{
+                                str+="<option value='"+xuelilist[i].x_id+"'>"+xuelilist[i].x_name+"</option>"
+                            }
+                        }
+                        str+="</select></td>\n" +
+                        "    </tr>\n" +
+                        "\t<tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">备注</td>\n" +
+                        "        <td><textarea name='d_desc'>"+dDesc+"</textarea></td>\n" +
+                        "\t</tr>\n" +
+                        "    <tr>\n" +
+                        "        <td colspan=\"2\">\n" +
+                        "\t\t\t<center>\n" +
+                        "\t\t\t\t<button class=\"btn btn-primary\" type=\"button\" id='submit-btn'>保存</button> &nbsp;&nbsp;" +
+                        "<a class=\"btn btn-success\" id=\"backid\" href='javascript:window.location.href=\"index.html\";'>返回列表</a>\n" +
+                        "\t\t\t</center>\n" +
+                        "\t\t</td>\n" +
+                        "    </tr>";
+                    $(".tableData").html(str);
+                }
+            }
+        });
+        $("#submit-btn").on('click',function (){updateDoctor(dId);});
+        $("input[name='d_idCard']").blur(function () {
+            get_baseinfo();
+        });
+    });
+
+    // 查询科室
+    function queryKeshi(){
+        var ks='';
+        $.ajax({
+            type: "GET",
+            url: "/keshi/all",
+            dataType:"json",
+            async:false,
+            success: function(vo) {
+                if(vo.status == 200){
+                    ks=vo.list;
+                }
+            }
+
+        });
+        return ks;
+    }
+    //查询全部学历
+    function queryXueli(){
+        var xl='';
+        $.ajax({
+            type: "GET",
+            url: "/xueli/all",
+            dataType:"json",
+            async:false,
+            success: function(vo) {
+                if(vo.status == 200){
+                    xl=vo.list;
+                }
+            }
+        });
+        return xl;
+    }
+    //提交修改信息
+    function updateDoctor(dId){
+        if (check()){
+            var keshi = $("#keshi option:selected").val(); //获取已选中的option的value
+            console.log("keshi:"+keshi);
+            var xueli = $("#xueli option:selected").val(); //获取已选中的option的value
+            $.ajax({
+                type: "POST",
+                url: "/doctor",
+                data:$("#myForm").serialize()+"&d_id="+dId+"&k_id="+keshi+"&x_id="+xueli+"&_method=PUT",
+                dataType:"json",
+                success: function(vo) {
+                    if(vo.status == 200){
+                        alert("医生信息修改已完成！");
+                    }else{
+                        alert(vo.msg);
+                    }
+                }
+
+            });
+        }
+    }
+    // 获取url地址中的参数
+    function getValue(url,para) {
+        var reg = new RegExp("(^|&)"+ para +"=([^&]*)(&|$)");
+        var r = url.substr(url.indexOf("\?")+1).match(reg);
+        if (r!=null) return unescape(r[2]);
+        return null;
+    }
+    //表单项校验
+    function check(){
+        var  dName= $("input[name='d_name']").val(); //姓名
+        if (dName.length==0){
+            alert("请填写姓名");
+            return false;
+        }else{
+            // 姓名的非空验证以及字符数量不能小于2以及大于5
+            var patt = /^[\u4e00-\u9fa5]{2,5}$/; //判断是否是2-5个汉字
+            if (!patt.test(dName)){
+                alert("姓名格式错误，应为2-5个汉字");
+                return false;
+            }
+        }
+
+        var  d_idCard= $("input[name='d_idCard']").val();//身份证号
+        if (d_idCard.length==0){
+            alert("请填写身份证号");
+            return false;
+        }else{
+            // 身份证号的正规合法验证
+            var patt = /^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{4}$/;
+            if(!patt.test(d_idCard) || get_baseinfo()<=18 || get_baseinfo() >=100){
+                alert("身份证号码输入错误,格式或年龄有误");
+                return false;
+            }
+        }
+
+
+        var  d_phone= $("input[name='d_phone']").val();//联系电话
+        if (d_phone.length==0){
+            alert("请填写手机号码");
+            return false;
+        }else{
+            // 正规电话号码的验证
+            var patt= /^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/;
+            if(!patt.test(d_phone)){
+                alert("请正确填写手机号码");
+                return false;
+            }
+        }
+
+        var  d_telphone= $("input[name='d_telphone']").val();//联系电话
+        if (d_telphone.length==0){
+            alert("请填写手机号码");
+            return false;
+        }else{
+            // 正规电话号码的验证
+            var patt1= /^(\(\d{3,4}-)|(\d{3.4}-)?\d{7,8}$/; // 举例XXXX-XXXXXXXX
+            var patt2 = /\d{3}-\d{8}|\d{4}-\d{7}/;//举例 021-87888822 0511-4405222
+            if(!patt1.test(d_telphone) && !patt2.test(d_telphone)){ //如果两个条件都不满足
+                alert("请正确填写座机号码");
+                return false;
+            }
+        }
+
+
+        var  dBirthday= $("input[name='d_birthday']").val();//出生年月日
+        if (dBirthday.length==0){
+            alert("请填写出生年月日");
+            return false;
+        }
+
+        var email = $("input[name='d_email']").val();
+        if (email.length==0){
+            alert("请输入email");
+            return false;
+        }else{
+            var patt= /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+            if(!patt.test(email)){
+                alert("邮箱格式不正确");
+                return false;
+            }
+        }
+
+        var  keshi= $("#keshi").val();//科室
+        if (keshi==-1 || keshi=="" || keshi.length==0){
+            alert("请选择科室");
+            return false;
+        }
+        var  xueli= $("#xueli").val();//医生
+        if (xueli==-1 || xueli=="" || xueli.length==0){
+            alert("请选择学历");
+            return false;
+        }
+        return true;
+    }
+
+    //根据输入的身份证号，自动获取出生年月、性别、年龄
+    function get_baseinfo() {
+        var didCard = $("input[name='d_idCard']").val();
+        if (didCard == '' || didCard.length != 18) {
+            alert('请输入18位正确身份证号');
+        }
+        var date = new Date();
+        var year = date.getFullYear();
+        var month = date.getMonth();
+        var day = date.getDay();
+        var birthday_year = parseInt(didCard.substr(6, 4));
+        var birthday_month = parseInt(didCard.substr(10, 2));
+        if (birthday_month>0&&birthday_month<10) birthday_month = "0"+birthday_month;
+        var birthday_day = parseInt(didCard.substr(12, 2));
+        if (birthday_day>0&&birthday_day<10) birthday_day = "0"+birthday_day;
+        var sex = parseInt(didCard.substr(16, 1));
+        var birth = ""+birthday_year+"-"+birthday_month+"-"+birthday_day;
+        $("input[name='d_birthday']").attr("value",birth);
+
+        if (sex % 2 == 0){ //偶数女
+            $("input[name='d_sex']:last").prop('checked',true);
+            $("input[name='d_sex']:first").prop('checked',false);
+        } //奇数 男
+        if (sex % 2 == 1){ //偶数女
+            $("input[name='d_sex']:first").prop('checked',true);
+            $("input[name='d_sex']:last").prop('checked',false);
+        }
+        var userage= year - birthday_year -1;
+        if (birthday_month-month<0){ //生日月份小于当前月份，年纪+1
+            userage++;
+        }
+        if (birthday_month-month==0){
+            if (birthday_day-day<0){ //在月份相同的情况下，如果生日的日子小于当前日子，年纪+1
+                userage++;
+            }
+            if(birthday_day-day==0){ //日子相同，年纪+1
+                userage++;
+            }
+        }
+        if (birthday_month!="00" && birthday_day == "00" ) return 0;
+        if(birthday_month=="00") return 0;
+        if(birthday_day=="00") return 0;
+        $("#d_age").text(userage);
+        return userage;
+    }
+</script>
+</body>
+</html>

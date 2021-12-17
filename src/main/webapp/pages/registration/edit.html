@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>挂号--中软高科-2015</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/style.css" />
+    <script type="text/javascript" src="../../Js/jquery.js"></script>
+    <script type="text/javascript" src="../../Js/bootstrap.js"></script>
+    <script type="text/javascript" src="../../Js/ckform.js"></script>
+    <script type="text/javascript" src="../../Js/common.js"></script>
+    <script type="text/javascript" src="../../Js/ckeditor/ckeditor.js"></script>
+    <style type="text/css">
+        body {
+            padding-bottom: 40px;
+        }
+        .sidebar-nav {
+            padding: 9px 0;
+        }
+
+        @media (max-width: 980px) {
+            /* Enable use of floated navbar text */
+            .navbar-text.pull-right {
+                float: none;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        }
+
+
+    </style>
+</head>
+<body>
+<form id="myForm" class="definewidth m20">
+<table class="table tableData table-bordered table-hover definewidth m10">
+</table>
+</form>
+<script>
+    var dlist=new Array();
+    var keshilist = queryKeshi();
+    // 先查询所有科室以及科室对应的医生信息
+    for (var i = 0; i < keshilist.length; i++) {
+        // 返回一个医生的一维数组
+        var ds = queryDoctorByKID(keshilist[i].k_id);
+        if (ds.length!=0){
+            dlist[i] = ds;
+        }else{
+            dlist[i] = [{k_id:-1,k_name:"该科室暂无医生信息",d_id:-1,d_name:"暂无医生"}];
+        }
+    }
+    $(function () {
+        var url = document.location.toString();
+        var hosrId = getValue(url,"hosrId");
+        // 根据id回显数据
+        $.ajax({
+            type: "GET",
+            url: "/hosregister/"+hosrId,
+            dataType:"json",
+            async:false,
+            success: function(vo) {
+                if (vo.status == 200) { // 请求成功
+                    var obj = vo.obj;
+                    var hosrId = obj.hosR_id;
+                    var hosrName = obj.hosR_name; //名字
+                    var idCard = obj.hosR_idCard; //身份证号
+                    var hosrRegPrice = obj.hosR_regPrice;//挂号费
+                    var hosrRmedical = obj.hosR_medical;//社保
+                    var hosrPhone = obj.hosR_phone;//联系电话
+                    var hosrRselfPrice = obj.hosR_selfPrice;//是否自费 0是 1否
+                    var hosrRsex = obj.hosR_sex;//性别 0女 1男
+                    var hosrRage = obj.hosR_age;//年龄
+                    var hosrRwork = obj.hosR_work;//职业
+                    var hosrRlookstate = obj.hosR_lookState;//初复诊 0初诊 1复诊
+                    var kid = obj.k_id; // 科室id
+                    var kName = obj.k_Name; //科室
+                    var did = obj.d_id; // 医生id
+                    var dName = obj.d_Name; //医生名
+                    var hosrRemark = obj.hosR_remark==null?"暂无":obj.hosR_remark;//备注
+                    str = "<tr>\n"+
+                        "        <td><input type=\"hidden\" name=\"hosR_id\" value=\""+hosrId+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "<tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">姓名</td>\n" +
+                        "        <td><input type=\"text\" name=\"hosR_name\" value=\""+hosrName+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">身份证号</td>\n" +
+                        "        <td><input type=\"text\" name=\"hosR_idCard\" value=\""+idCard+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">挂号费</td>\n" +
+                        "        <td><input type=\"text\" name=\"hosR_regPrice\" value=\""+hosrRegPrice+"\"/>元</td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">社保号</td>\n" +
+                        "        <td><input type=\"text\" name=\"hosR_medical\" value=\""+hosrRmedical+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">联系电话</td>\n" +
+                        "        <td><input type=\"text\" name=\"hosR_phone\" value=\""+hosrPhone+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">是否自费</td>\n";
+                        //是否自费的单选框处理
+                        if (hosrRselfPrice==0)
+                            str+="        <td><input type=\"radio\" name=\"hosR_selfPrice\" value=\"0\" checked/>否&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"hosR_selfPrice\" value=\"1\"/>是</td>\n";
+                        else
+                            str+="        <td><input type=\"radio\" name=\"hosR_selfPrice\" value=\"0\"/>否&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"hosR_selfPrice\" value=\"1\" checked/>是</td>\n";
+
+                        str+= "    </tr>\n" +
+                        "    <tr>\n"+
+                        "        <td width=\"10%\" class=\"tableleft\">性别</td>\n";
+
+                        //性别的单选框处理
+                        if (hosrRsex==0)
+                            str+="        <td><input type=\"radio\" name=\"hosR_sex\" value=\"1\"/>男&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"hosR_sex\" value=\"0\" checked/>女</td>\n";
+                        else
+                            str+="        <td><input type=\"radio\" name=\"hosR_sex\" value=\"1\" checked/>男&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"hosR_sex\" value=\"0\"/>女</td>\n";
+
+                        str+="    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">年龄</td>\n" +
+                        "        <td><input type=\"text\" name=\"hosR_age\" value=\""+hosrRage+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">职业</td>\n" +
+                        "        <td><input type=\"text\" name=\"hosR_work\" value=\""+hosrRwork+"\"/></td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n"+
+                        "        <td width=\"10%\" class=\"tableleft\">初复诊</td>\n";
+
+                        //初复诊的单选框处理
+                        if (hosrRlookstate ==0)
+                            str+="        <td><input type=\"radio\" name=\"hosR_lookState\" value=\"0\" checked/>初诊&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"hosR_lookState\" value=\"1\"/>复诊</td>\n";
+                        else
+                            str+="        <td><input type=\"radio\" name=\"hosR_lookState\" value=\"0\"/>初诊&nbsp;&nbsp;&nbsp;<input type=\"radio\" name=\"hosR_lookState\" value=\"1\" checked/>复诊</td>\n";
+
+
+                         str+="    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">所挂科室</td>\n"+
+                        "        <td><select id='keshi' name='k_id'>";
+
+                        console.log("打印科室："+keshilist[0].keshi_name);
+                        //科室的下拉框选中与其它科室展示的处理
+                        for (var i = 0; i < keshilist.length; i++) {
+                            console.log(keshilist[i]);
+                            if (keshilist[i].k_id == kid){
+                                str+="<option value='"+keshilist[i].k_id+"' selected>"+kName+"</option>"
+                            }else{
+                                str+="<option value='"+keshilist[i].k_id+"'>"+keshilist[i].keshi_name+"</option>"
+                            }
+                        }
+                        str+="</select></td>\n"+
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">指定医生</td>\n"+
+                        "        <td><select id='doctor' name='d_id'>";
+                        // 根据科室id查询该科室全部的医生信息
+                        var count=0;
+                       //医生的下拉框选中与其它医生展示的处理
+                        for (var j = 0; j < dlist.length; j++) {
+                            //如果该科室的k_id为默认的-1，则表示该科室下没有医生，就不进入二次循环
+                            if (dlist[j][0].k_id!=-1){
+                                for (var k=0;k<dlist[j].length;k++){
+                                    //如果该科室下的医生，是挂号人的主治医生，就赋予selected
+                                    if (dlist[j][0].d_id==did && dlist[j][0].k_id == kid){
+                                        str+="<option value='"+dlist[j][0].d_id+"' selected>"+dlist[j][0].d_name+"</option>";
+                                        count=1;
+                                        // 如果是同一个科室，但是不是主治医生
+                                    }else if (dlist[j][0].k_id == kid){
+                                        str+="<option value='"+dlist[j][0].d_id+"'>"+dlist[j][0].d_name+"</option>"
+                                    }
+                                }
+                            }
+                        }
+                        if (count==0){
+                            str+="<option value='-1'>该科室暂无医生</option>";
+                        }
+                        str+="</select></td>\n"+
+                        "</tr>\n" +
+                        "\t<tr>\n" +
+                        "        <td width=\"10%\" class=\"tableleft\">备注</td>\n" +
+                        "        <td><textarea name='hosR_remark'>"+hosrRemark+"</textarea></td>\n" +
+                        "\t</tr>\n" +
+                        "    <tr>\n" +
+                        "        <td colspan=\"2\">\n" +
+                        "\t\t\t<center>\n" +
+                        "\t\t\t\t<button type=\"button\" class=\"btn btn-primary\" id=\"submit-btn\">保存</button> &nbsp;&nbsp;" +
+                        "<a class=\"btn btn-success\" id=\"backid\" href='javascript:window.location.href=\"index.html\";'>返回列表</a>\n" +// 返回到主页
+                        "\t\t\t</center>\n" +
+                        "\t\t</td>\n" +
+                        "    </tr>";
+                    $(".tableData").html(str);
+                }
+            }
+        });
+        $("#keshi").change(function (){queryDoctorInfoByKID();});
+        $("#submit-btn").on('click',function (){updatehosregister();});
+        $("input[name='hosR_idCard']").blur(function () {
+            get_baseinfo();
+        });
+    });
+
+    // 查询科室
+    function queryKeshi(){
+        var ks='';
+         $.ajax({
+            type: "GET",
+            url: "/keshi/all",
+            dataType:"json",
+            async:false,
+            success: function(vo) {
+                if(vo.status == 200){
+                    ks=vo.list;
+                    // var str="<option value='-1' selected='selected'>请选择</option>";
+                    // for (var i = 0; i < list.length; i++) {
+                    //     str+=" <option value='"+list[i].k_id+"'>"+list[i].keshi_name+"</option>";
+                    // }
+                    // $("select[name='k_Name']").html(str);
+                }
+            }
+
+        });
+         return ks;
+    }
+    //根据科室的id,返回对应的医生列表
+    function queryDoctorByKID(kid){
+        var ds = '';
+        $.ajax({
+            type: "GET",
+            url: "/doctor/queryByKid/"+kid,
+            dataType:"json",
+            async:false,
+            success: function(vo) {
+                if(vo.status == 200){
+                    ds = vo.list;
+                }
+            }
+        });
+        return ds;
+    }
+    //根据科室的id,列出对应的医生
+    function queryDoctorInfoByKID(){
+        var keshi = $("#keshi option:selected").val(); //获取已选中的option的value
+        $.ajax({
+            type: "GET",
+            url: "/doctor/queryByKid/"+keshi,
+            dataType:"json",
+            success: function(vo) {
+                if(vo.status == 200){
+                    var list = vo.list;
+                    var str= "";
+                    if (list.length==0){
+                        str+="<option value='-1' selected='selected'>暂无医生</option>";
+                    }else{
+                        str+="<option value='-1' selected='selected'>请选择</option>";
+                    }
+
+                    for (var i = 0; i < list.length; i++) {
+                        str+=" <option value='"+list[i].d_id+"'>"+list[i].d_name+"</option>";
+                    }
+                    $("#doctor").html(str);
+                }
+            }
+
+        });
+    }
+    //提交挂号信息
+    function updatehosregister(){
+        if (!check()){
+            return ;
+        }
+        var keshi = $("#keshi option:selected").val(); //获取已选中的option的value
+        console.log("keshi:"+keshi);
+
+        var doctor = $("#doctor option:selected").val(); //获取已选中的option的value
+        console.log("doctor:"+doctor);
+        $.ajax({
+            type: "POST",
+            url: "/hosregister?k_id="+keshi+"&d_id="+doctor,
+            data:$("#myForm").serialize()+"&_method=PUT",
+            dataType:"json",
+            success: function(vo) {
+                if(vo.status == 200){
+                    alert("挂号信息修改已完成！");
+                }else{
+                    alert(vo.msg);
+                }
+            }
+
+        });
+    }
+    // 获取url地址中的参数
+    function getValue(url,para) {
+        var reg = new RegExp("(^|&)"+ para +"=([^&]*)(&|$)");
+        var r = url.substr(url.indexOf("\?")+1).match(reg);
+        if (r!=null) return unescape(r[2]);
+        return null;
+    }
+    //表单项校验
+    function check(){
+        var  hosRName= $("input[name='hosR_name']").val(); //姓名
+        if (hosRName.length==0){
+            alert("请填写姓名");
+            return false;
+        }else{
+            // 姓名的非空验证以及字符数量不能小于2以及大于5
+            var patt = /^[\u4e00-\u9fa5]{2,5}$/; //判断是否是2-5个汉字
+            if (!patt.test(hosRName)){
+                alert("姓名格式错误，应为2-5个汉字");
+                return false;
+            }
+        }
+
+        var  hosR_idCard= $("input[name='hosR_idCard']").val();//身份证号
+        if (hosR_idCard.length==0){
+            alert("请填写身份证号");
+            return false;
+        }else{
+            // 身份证号的正规合法验证
+            var patt = /^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{4}$/;
+            if(!patt.test(hosR_idCard)  || get_baseinfo()<=18 || get_baseinfo() >=100){
+                alert("身份证号码输入错误或年龄错误");
+                return false;
+            }
+        }
+        var  hosR_medical= $("input[name='hosR_medical']").val();//社保号
+        if (hosR_medical.length==0){
+            alert("请填写社保号");
+            return false;
+        }else{
+            // 社保号的正规合法验证
+            var patt = /^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{4}$/;
+            if(!patt.test(hosR_idCard)){
+                alert("社保号码输入错误");
+                return false;
+            }
+        }
+
+        var  hosR_regPrice= $("input[name='hosR_regPrice']").val();//挂号费 不能为空 不能小于0
+        if (hosR_regPrice.length==0 || hosR_regPrice<=0){
+            alert("请正确填写挂号费");
+            return false;
+        }else{
+            var patt1 = /^\d+(\.\d+)?$/; //非负的浮点数
+            var patt2 = /^\d+$/; //非负的整数
+            if(!patt1.test(hosR_regPrice) || !patt2.test(hosR_regPrice)){ //如果不是非负的浮点数以及非负的整数，就说明格式错误
+                alert("挂号费请用正整数或正浮点数");
+                return false;
+            }
+        }
+
+        var  hosR_phone= $("input[name='hosR_phone']").val();//联系电话
+        if (hosR_phone.length==0){
+            alert("请填写手机号码");
+            return false;
+        }else{
+            // 正规电话号码的验证
+            var patt= /^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/;
+            if(!patt.test(hosR_phone)){
+                alert("请正确填写手机号码");
+                return false;
+            }
+        }
+
+        var  hosR_age= $("input[name='hosR_age']").val();//年龄
+        if (hosR_age.length==0 || hosR_age<=0){
+            alert("年龄填写错误");
+            return false;
+        }
+
+
+        var  keshi= $("#keshi").val();//科室
+        if (keshi==-1 || keshi=="" || keshi.length==0){
+            alert("请选择科室");
+            return false;
+        }
+
+        var  doctor= $("#doctor").val();//医生
+        if (doctor==-1 || doctor=="" || doctor.length==0){
+            alert("请选择医生");
+            return false;
+        }
+        return true;
+    }
+    //根据输入的身份证号，自动计算年龄
+    function get_baseinfo(){
+        var hosRidCard = $("input[name='hosR_idCard']").val();
+        if(hosRidCard=='' || hosRidCard.length != 18){
+            alert('请输入18位正确身份证号');
+        }
+        var date = new Date();
+        var year = date.getFullYear();
+        var month = date.getMonth();
+        var day = date.getDay();
+        var birthday_year = parseInt(hosRidCard.substr(6,4));
+        var birthday_month = parseInt(hosRidCard.substr(10,2));
+        var birthday_day = parseInt(hosRidCard.substr(12,2));
+        if (birthday_month!="00" && birthday_day == "00" ) return 0;
+        if(birthday_month=="00") return 0;
+        if(birthday_day=="00") return 0;
+
+
+        var sex = parseInt(hosRidCard.substr(16, 1));
+
+        if (sex % 2 == 0){ //偶数女
+            $("input[name='hosR_sex']:last").prop('checked',true);
+            $("input[name='hosR_sex']:first").prop('checked',false);
+        } //奇数 男
+        if (sex % 2 == 1){ //偶数女
+            $("input[name='hosR_sex']:first").prop('checked',true);
+            $("input[name='hosR_sex']:last").prop('checked',false);
+        }
+        var userage= year - birthday_year -1;
+        if (birthday_month-month<0){ //生日月份小于当前月份，年纪+1
+            userage++;
+        }
+        if (birthday_month-month==0){
+            if (birthday_day-day<0){ //在月份相同的情况下，如果生日的日子小于当前日子，年纪+1
+                userage++;
+            }
+            if(birthday_day-day==0){ //日子相同，年纪+1
+                userage++;
+            }
+        }
+        if (userage>0)
+            $("input[name='hosR_age']").val(userage);
+        return userage;
+    }
+</script>
+</body>
+</html>

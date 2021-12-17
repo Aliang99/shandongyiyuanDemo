@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>更改挂号--中软高科-2015</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/style.css" />
+    <script type="text/javascript" src="../../Js/jquery.js"></script>
+    <script type="text/javascript" src="../../Js/bootstrap.js"></script>
+    <script type="text/javascript" src="../../Js/ckform.js"></script>
+    <script type="text/javascript" src="../../Js/common.js"></script>
+    <script type="text/javascript" src="../../Js/ckeditor/ckeditor.js"></script>
+ 
+
+    <style type="text/css">
+        body {
+            padding-bottom: 40px;
+        }
+        .sidebar-nav {
+            padding: 9px 0;
+        }
+
+        @media (max-width: 980px) {
+            /* Enable use of floated navbar text */
+            .navbar-text.pull-right {
+                float: none;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        }
+
+
+    </style>
+    <script type="text/javascript">
+    $(function () {       
+		$('#backid').click(function(){
+				window.location.href="index.html";
+		 });
+    });
+    </script>
+</head>
+<body>
+<form class="definewidth m20" id="myForm">
+<table class="table table-bordered table-hover definewidth m10">
+    <tr>
+        <td width="10%" class="tableleft">姓名</td>
+        <td><input type="text" name="hosR_name" value=""/></td>
+    </tr>
+
+    <tr>
+        <td width="10%" class="tableleft">身份证号</td>
+        <td><input type="text" name="hosR_idCard" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">社保号</td>
+        <td><input type="text" name="hosR_medical" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">挂号费</td>
+        <td><input type="text" name="hosR_regPrice" value=""/>元</td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">联系电话</td>
+        <td><input type="text" name="hosR_phone" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">是否自费</td>
+        <td><input type="radio" name="hosR_selfPrice" value="0" checked/>否&nbsp;&nbsp;&nbsp;<input type="radio" name="hosR_selfPrice" value="1"/>是</td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">性别</td>
+        <td><input type="radio" name="hosR_sex" value="1" checked/>男&nbsp;&nbsp;&nbsp;<input type="radio" name="hosR_sex" value="0"/>女</td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">年龄</td>
+        <td><input type="text" name="hosR_age" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">职业</td>
+        <td><input type="text" name="hosR_work" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">初复诊</td>
+        <td><input type="radio" name="hosR_lookState" value="0" checked/>初诊&nbsp;&nbsp;&nbsp;<input type="radio" name="hosR_lookState" value="1"/>复诊</td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">所挂科室</td>
+        <td>
+            <select name="k_Name" id="keshi">
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">指定医生</td>
+        <td>
+            <select name="d_Name" id="doctor">
+            </select>
+        </td>
+    </tr>
+	<tr>
+        <td width="10%" class="tableleft">备注</td>
+        <td><textarea name="hosR_remark"></textarea></td>
+	</tr>
+    <tr>
+        <td colspan="2">
+			<center>
+				<button type="button" class="btn btn-primary" id="submit-btn">保存</button> &nbsp;&nbsp;<button type="button" class="btn btn-success" name="backid" id="backid">返回列表</button>
+			</center>
+		</td>
+    </tr>
+</table>
+</form>
+<script>
+    $(function () {
+        //先查询科室
+        queryKeshi();
+        //再根据科室查询对应的医生
+        $("#keshi").change(function (){queryDoctorByKID();});
+        $("#submit-btn").click(function (){addhosregister();});
+        $("input[name='hosR_idCard']").blur(function () {
+            get_baseinfo();
+        });
+    });
+
+    //查询科室，再在页面中罗列出来
+    function queryKeshi(){
+        $.ajax({
+            type: "GET",
+            url: "/keshi/all",
+            dataType:"json",
+            success: function(vo) {
+                if(vo.status == 200){
+                    var list = vo.list;
+                    var str="<option value='-1' selected='selected'>请选择</option>";
+                    for (var i = 0; i < list.length; i++) {
+                        str+=" <option value='"+list[i].k_id+"'>"+list[i].keshi_name+"</option>";
+                    }
+                    $("select[name='k_Name']").html(str);
+                }
+            }
+
+        });
+
+    }
+    //根据科室的id,列出对应的医生
+    function queryDoctorByKID(){
+        var keshi = $("#keshi option:selected").val(); //获取已选中的option的value
+        console.log(keshi);
+        $.ajax({
+            type: "GET",
+            url: "/doctor/queryByKid/"+keshi,
+            dataType:"json",
+            success: function(vo) {
+                if(vo.status == 200){
+                    var list = vo.list;
+                    var str= "";
+                    if (list.length==0){
+                        str+="<option value='-1' selected='selected'>暂无医生</option>";
+                    }else{
+                        str+="<option value='-1' selected='selected'>请选择</option>";
+                    }
+
+                    for (var i = 0; i < list.length; i++) {
+                        str+=" <option value='"+list[i].d_id+"'>"+list[i].d_name+"</option>";
+                    }
+                    $("select[name='d_Name']").html(str);
+                }
+            }
+
+        });
+    }
+    //提交挂号信息
+    function addhosregister(){
+        if(check()){
+            var keshi = $("#keshi option:selected").val(); //获取已选中的option的value
+            var doctor = $("#doctor option:selected").val(); //获取已选中的option的value
+            $.ajax({
+                type: "POST",
+                url: "/hosregister?k_id="+keshi+"&d_id="+doctor,
+                data:$("#myForm").serialize(),
+                dataType:"json",
+                success: function(vo) {
+                    if(vo.status == 200){
+                        alert("挂号信息已录入！");
+                    }else{
+                        alert(vo.msg);
+                    }
+                }
+
+            });
+        }
+    }
+    //表单项校验
+    function check(){
+        var  hosRName= $("input[name='hosR_name']").val(); //姓名
+        if (hosRName.length==0){
+            alert("请填写姓名");
+            return false;
+        }else{
+            // 姓名的非空验证以及字符数量不能小于2以及大于5
+            var patt = /^[\u4e00-\u9fa5]{2,5}$/; //判断是否是2-5个汉字
+            if (!patt.test(hosRName)){
+                alert("姓名格式错误，应为2-5个汉字");
+                return false;
+            }
+        }
+
+        var  hosR_idCard= $("input[name='hosR_idCard']").val();//身份证号
+        if (hosR_idCard.length==0){
+            alert("请填写身份证号");
+            return false;
+        }else{
+            // 身份证号的正规合法验证
+            var patt = /^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{4}$/;
+            if(!patt.test(hosR_idCard)  || get_baseinfo()<=18 || get_baseinfo() >=100){
+                alert("身份证号码输入错误或年龄错误");
+                return false;
+            }
+        }
+        var  hosR_medical= $("input[name='hosR_medical']").val();//社保号
+        if (hosR_medical.length==0){
+            alert("请填写社保号");
+            return false;
+        }else{
+            // 社保号的正规合法验证
+            var patt = /^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{4}$/;
+            if(!patt.test(hosR_idCard)){
+                alert("社保号码输入错误");
+                return false;
+            }
+        }
+
+        var  hosR_regPrice= $("input[name='hosR_regPrice']").val();//挂号费 不能为空 不能小于0
+        if (hosR_regPrice.length==0 || hosR_regPrice<=0){
+            alert("请正确填写挂号费");
+            return false;
+        }else{
+            var patt1 = /^\d+(\.\d+)?$/; //非负的浮点数
+            var patt2 = /^\d+$/; //非负的整数
+            if(!patt1.test(hosR_regPrice) || !patt2.test(hosR_regPrice)){ //如果不是非负的浮点数以及非负的整数，就说明格式错误
+                alert("挂号费请用正整数或正浮点数");
+                return false;
+            }
+        }
+
+        var  hosR_phone= $("input[name='hosR_phone']").val();//联系电话
+        if (hosR_phone.length==0){
+            alert("请填写手机号码");
+            return false;
+        }else{
+            // 正规电话号码的验证
+            var patt= /^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/;
+            if(!patt.test(hosR_phone)){
+                alert("请正确填写手机号码");
+                return false;
+            }
+        }
+
+        var  hosR_age= $("input[name='hosR_age']").val();//年龄
+        if (hosR_age.length==0 || hosR_age<=0){
+            alert("年龄填写错误");
+            return false;
+        }
+
+
+        var  keshi= $("#keshi").val();//科室
+        if (keshi==-1 || keshi=="" || keshi.length==0){
+            alert("请选择科室");
+            return false;
+        }
+
+        var  doctor= $("#doctor").val();//医生
+        if (doctor==-1 || doctor=="" || doctor.length==0){
+            alert("请选择医生");
+            return false;
+        }
+        return true;
+    }
+
+    //根据输入的身份证号，自动计算年龄
+    function get_baseinfo(){
+        var hosRidCard = $("input[name='hosR_idCard']").val();
+        if(hosRidCard=='' || hosRidCard.length != 18){
+            alert('请输入18位正确身份证号');
+        }
+        var date = new Date();
+        var year = date.getFullYear();
+        var month = date.getMonth();
+        var day = date.getDay();
+        var birthday_year = parseInt(hosRidCard.substr(6,4));
+        var birthday_month = parseInt(hosRidCard.substr(10,2));
+        var birthday_day = parseInt(hosRidCard.substr(12,2));
+        if (birthday_month!="00" && birthday_day == "00" ) return 0;
+        if(birthday_month=="00") return 0;
+        if(birthday_day=="00") return 0;
+
+
+        var sex = parseInt(hosRidCard.substr(16, 1));
+        if (sex % 2 == 0){ //偶数女
+            $("input[name='hosR_sex']:last").prop('checked',true);
+            $("input[name='hosR_sex']:first").prop('checked',false);
+        } //奇数 男
+        if (sex % 2 == 1){ //偶数女
+            $("input[name='hosR_sex']:first").prop('checked',true);
+            $("input[name='hosR_sex']:last").prop('checked',false);
+        }
+        var userage= year - birthday_year -1;
+        if (birthday_month-month<0){ //生日月份小于当前月份，年纪+1
+            userage++;
+        }
+        if (birthday_month-month==0){
+            if (birthday_day-day<0){ //在月份相同的情况下，如果生日的日子小于当前日子，年纪+1
+                userage++;
+            }
+            if(birthday_day-day==0){ //日子相同，年纪+1
+                userage++;
+            }
+        }
+        if (userage>0)
+            $("input[name='hosR_age']").val(userage);
+        return userage;
+    }
+</script>
+</body>
+</html>

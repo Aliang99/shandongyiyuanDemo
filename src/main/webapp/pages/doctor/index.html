@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>门诊医生--中软高科-2015</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/style.css" />
+    <script type="text/javascript" src="../../Js/jquery.js"></script>
+    <script type="text/javascript" src="../../Js/bootstrap.js"></script>
+    <script type="text/javascript" src="../../Js/ckform.js"></script>
+    <script type="text/javascript" src="../../Js/common.js"></script>
+
+    <style type="text/css">
+        body {
+            padding-bottom: 40px;
+        }
+        .sidebar-nav {
+            padding: 9px 0;
+        }
+
+        @media (max-width: 980px) {
+            /* Enable use of floated navbar text */
+            .navbar-text.pull-right {
+                float: none;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        }
+
+
+    </style>
+    <script type="text/javascript">
+	 $(function () {
+		$('#newNav').click(function(){
+				window.location.href="add.html";
+		 });
+    });
+	
+    	function checkall(){
+			var alls=document.getElementsByName("check");
+			var ch=document.getElementById("checkall");
+			if(ch.checked){
+				for(var i=0;i<alls.length;i++){
+					alls[i].checked=true;	
+				}	
+			}else{
+				for(var i=0;i<alls.length;i++){
+					alls[i].checked=false;	
+				}	
+			}
+		}
+		function delAll(){
+			var alls=document.getElementsByName("check");
+			var ids=new Array();
+			for(var i=0;i<alls.length;i++){
+				if(alls[i].checked){
+					ids.push(alls[i].value);
+				}		
+			}
+			if(ids.length>0){
+				if(confirm("确认操作?")){
+					delAll2(ids);
+				}
+			}else{
+				alert("请选中要操作的项");
+			}
+		}
+    </script>
+</head>
+<body>
+
+<form class="definewidth m20" id="myForm">
+<table class="table table-bordered table-hover definewidth m10">
+    <tr>
+        <td width="10%" class="tableleft">医生编号：</td>
+        <td><input type="text" name="dId" value="" id="id" /></td>
+		
+        <td width="10%" class="tableleft">医生姓名：</td>
+        <td><input type="text" name="dName" value="" id="name"/></td>
+		
+        <td width="10%" class="tableleft">科室：</td>
+        <td><input type="text" name="kName" value="" id="kn"/></td>
+        <input type="hidden" name="pageNum" id="pageNum" value="1">
+        <input type="hidden" name="pageSize" id="pageSize" value="5">
+    </tr>
+    <tr>
+		  <td colspan="6"><center>
+            <button type="button" class="btn btn-primary" id="submit-btn">条件查询</button>
+             <button id="all-btn" class="btn btn-primary" type="button">全部查询</button>
+            <button type="reset" class="btn btn-primary" >清空</button>
+			</center>
+        </td>
+    </tr>
+</table>
+</form>
+   
+<table class="table table-bordered table-hover definewidth m10" >
+   <thead>
+    <tr>
+    	<th><input type="checkbox" id="checkall" onChange="checkall();"></th>
+        <th>医生编号</th>
+        <th>医生姓名</th>
+        <th>入院时间</th>
+        <th>所属科室</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  
+  <table class="table table-bordered table-hover definewidth m10" >
+      <tr>
+          <th colspan="12">
+              <div class="inline pull-right page">
+                  <button type="button" class="btn btn-warning fenye" id="firstPage">第一页</button>
+                  <button type="button" class="btn btn-warning fenye" id="prePage">上一页</button>
+                  <div id="pageDiv" style="display:inline-block"></div>
+                  <button type="button" class="btn btn-warning fenye" id="nextPage">下一页</button>
+                  <button type="button" class="btn btn-warning fenye" id="lastPage">最后一页</button>
+                  &nbsp;&nbsp;&nbsp;共<span id="total" class='current'> </span>&nbsp;条记录
+                  <span class='current' id="num">1</span>&nbsp;/<span class="current" id="pages">33</span>&nbsp;页
+              </div>
+              <div>
+                  <button type="button" class="btn btn-success" id="newNav">添加医生</button>&nbsp;&nbsp;&nbsp;
+                  <button type="button" class="btn btn-success" id="delPro" onClick="delAll();">批量离职</button>
+              </div>
+
+          </th>
+      </tr>
+  </table>
+<script>
+    $(function(){
+        var url = document.location.toString();
+        var pageNum=getValue(url,"pageNum"); //从url中获取pageNum
+        var pageSize=getValue(url,"pageSize");//从url中获取pageSize
+        if(pageNum!=null&& $("#pageNum").val()!=null){
+            $("#pageNum").val(pageNum);
+        }
+        if(pageSize!=null&& $("#pageSize").val()!=null){
+            $("#pageSize").val(pageSize);
+        }
+        //首次进入页面，如果表格中没有数据，则获取数据
+        if ($("#tbody").text().length == 0){
+            loadData(1);
+        }
+        //条件查询
+        $("#submit-btn").click(function () {
+            //点击查询按钮，获取数据
+            if(check()){
+                loadData(0);
+            }else{
+                alert("请检查输入的数据格式是否有误！");
+            }
+        });
+        //查询全部
+        $("#all-btn").click(function () {
+            loadData(1);
+        });
+        // 翻页按钮点击
+        $(".fenye").click(function(){
+            var num=$(this).attr("name");
+            $("#pageNum").val(num);
+            if(check()){
+                loadData(0);
+            }else{
+                alert("请检查输入的数据格式是否有误！");
+            }
+        });
+        //注意： jquery动态添加的标签，需要使用on函数才能绑定事件
+        $("#pageDiv").on("click",".numa",function(){
+            //点击页码获取数据
+            var num=$(this).attr("name");
+            $("#pageNum").val(num);
+            if(check()){
+                loadData(0);
+            }else{
+                alert("请检查输入的数据格式是否有误！");
+            }
+        });
+    });
+    // 获取url地址中的参数
+    function getValue(url,para) {
+        var reg = new RegExp("(^|&)"+ para +"=([^&]*)(&|$)");
+        var r = url.substr(url.indexOf("\?")+1).match(reg);
+        if (r!=null) return unescape(r[2]);
+        return null;
+    }
+    //填充分页信息
+    function fillPageData(pageInfo) {
+        //填充信息
+        $("#total").html(pageInfo.total); //总条数
+        $("#pages").html(pageInfo.pages); //总页数
+        $("#pageNum").html(pageInfo.pageNum); //当前页
+        $("#num").html(pageInfo.pageNum); //当前页/总页数 的当前页
+        //设置按钮的属性值和样式
+        $("#firstPage").attr("name",1);
+        $("#prePage").attr("name",pageInfo.prePage);
+        $("#nextPage").attr("name",pageInfo.nextPage);
+        $("#lastPage").attr("name",pageInfo.pages);
+
+        $("#firstPage").attr("disabled",false);
+        $("#firstPage").addClass("btn-warning");
+        $("#firstPage").removeClass("btn-default");
+
+        $("#prePage").attr("disabled",false);
+        $("#prePage").addClass("btn-warning");
+        $("#prePage").removeClass("btn-default");
+
+        $("#nextPage").attr("disabled",false);
+        $("#nextPage").addClass("btn-warning");
+        $("#nextPage").removeClass("btn-default");
+
+        $("#lastPage").attr("disabled",false);
+        $("#lastPage").addClass("btn-warning");
+        $("#lastPage").removeClass("btn-default");
+
+        if(pageInfo.isFirstPage){//如果是第一页：上一页和首页隐藏
+            $("#firstPage").attr("disabled",true);
+            $("#firstPage").removeClass("btn-warning");
+            $("#firstPage").addClass("btn-default");
+
+            $("#prePage").attr("disabled",true);
+            $("#prePage").removeClass("btn-warning");
+            $("#prePage").addClass("btn-default")
+        }
+        if(pageInfo.isLastPage){//如果已经是最后一页：下一页和末页隐藏
+            $("#nextPage").attr("disabled",true);
+            $("#nextPage").removeClass("btn-warning");
+            $("#nextPage").addClass("btn-default")
+            $("#lastPage").attr("disabled",true);
+            $("#lastPage").removeClass("btn-warning");
+            $("#lastPage").addClass("btn-default")
+        }
+        // 获取页码集合
+        var nums = pageInfo.navigatepageNums;
+        var strs="";
+        //添加全部页码到页面上，供点击
+        for (var i=0;i<nums.length;i++){
+            if ($("#num").text() == i+1)
+
+                strs+="<button type=\"button\" disabled='disabled' class=\"btn btn-danger btn-xs numa\" name=\""+(i+1)+"\">"+(i+1)+"</a>";
+            else
+                strs+="<button type=\"button\" class=\"btn btn-default numa\" name=\""+(i+1)+"\">"+(i+1)+"</a>";
+        }
+        $("#pageDiv").html(strs); //追加在后面
+
+    }
+    // 条件+分页查询
+    function loadData(flag){
+        // flag用于标识，0表示使用条件表单的数据，1表示查询全部
+        if (flag==1){
+            var data = null;
+        }else{
+            var data = $("#myForm").serialize();
+        }
+        $.ajax({
+            type: "GET",
+            url: "/doctor/list",
+            data: data,//主要是分页和多条件参数数据
+            dataType:"json",
+            success: function(vo){
+                if (vo.status==200 && vo.pageInfo.total>0){ // 请求成功
+                    var list = vo.pageInfo.list;
+                    var str="";
+                    for (var i=0;i<list.length;i++) {
+                        var listKey=list[i];
+                        var dId = listKey.d_id; //医生编号
+                        var doctorName = listKey.d_name; //医生姓名
+                        var time = listKey.d_inTime;//入院时间
+                        var keshi = listKey.k_Name;//所属科室
+                        var dstate = listKey.d_state;//所属科室
+                        //填充数据项
+                        str += "<tr >\n";
+                        if (dstate==1){ //如果是已离职的状态
+                            str+="         \t<td style=\"vertical-align:middle;\">已离职</td>";
+                        }else{
+                            str+="\t<td style=\"vertical-align:middle;\"><input type=\"checkbox\" name=\"check\" value=\""+dId+"\"></td>";
+                        }
+                            str+="            <td style=\"vertical-align:middle;\">"+dId+"</td>\n" +
+                            "            <td style=\"vertical-align:middle;\">"+doctorName+"</td>\n" +
+                            "            <td style=\"vertical-align:middle;\">"+time+"</td>\n" +
+                            "            <td style=\"vertical-align:middle;\">"+keshi+"</td>\n"+
+                            "            <td style=\"vertical-align:middle;\"><a href=\"look.html?dId="+dId+"\">详情>>></a>&nbsp;&nbsp;&nbsp;<a href=\"edit.html?dId="+dId+"\">更改</a>\n";
+
+                        //在职状态时提供离职功能
+                        if(dstate==0){
+                            str+="&nbsp;&nbsp;&nbsp;<a href=\"#\" onclick='delbyid("+dId+")'>离职</a>";
+                        }
+                        str+="</tr>\n"+
+                            "        </tr>";
+                        //将拼接好的字符串填充到表格中
+                        $("#tbody").html(str);
+                        // 填充分页项
+                        fillPageData(vo.pageInfo);
+                    }
+                }else{
+                    $("#tbody").html("<tr><td colspan='16'><center>暂未查询到相关信息</center></td></tr>");
+                }
+            }
+        });
+    }
+    // 单个离职
+    function delbyid(id){
+        $.ajax({
+            type: "POST",
+            url: "/doctor/"+id,
+            data: $("#myForm").serialize()+"&_method=DELETE",//主要是分页和多条件参数数据
+            dataType:"json",
+            success: function(vo){
+                if (vo.status==200){ // 请求成功
+                    alert("离职办理成功");
+                    loadData(1);
+                }else{
+                    alert(vo.msg);
+                }
+            }
+        });
+    }
+    //批量离职
+    function delAll2(ids){
+        console.log(ids);
+        $.ajax({
+            type: "POST",
+            url: "/doctor/delAll",
+            data: $("#myForm").serialize()+"&ids="+ids+"&_method=DELETE",//主要是分页和多条件参数数据
+            dataType:"json",
+            success: function(vo){
+                if (vo.status==200){ // 请求成功
+                    alert(vo.msg);
+                    loadData(1);
+                }else{
+                    alert(vo.msg);
+                }
+            }
+        });
+    }
+
+    //数据格式校验
+    function check(){
+        var did = $("#id").val();
+        var dname = $("#name").val();
+        var kname = $("#kn").val();
+        if (did.length!=0){
+            var patt = /^\d{1,5}$/;  // 1-5位数字
+            if (!patt.test(did)){
+                return false;
+            }
+        }
+        if (dname.length!=0){
+            var patt = /^[\u4e00-\u9fa5]{2,5}$/; //判断是否是汉字
+            if (!patt.test(dname)){
+                return false;
+            }
+        }
+        if(kname.length!=0){
+            var patt = /^[\u4e00-\u9fa5]{1,30}$/; //判断是否是2-5个汉字
+            if (!patt.test(kname)){
+                return false;
+            }
+        }
+        return true;
+    }
+</script>
+</body>
+</html>

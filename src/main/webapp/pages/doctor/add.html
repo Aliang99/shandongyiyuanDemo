@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>添加医生--中软高科-2015</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="../../Css/style.css" />
+    <script type="text/javascript" src="../../Js/jquery.js"></script>
+    <script type="text/javascript" src="../../Js/bootstrap.js"></script>
+    <script type="text/javascript" src="../../Js/ckform.js"></script>
+    <script type="text/javascript" src="../../Js/common.js"></script>
+    <script type="text/javascript" src="../../Js/ckeditor/ckeditor.js"></script>
+ 
+
+    <style type="text/css">
+        body {
+            padding-bottom: 40px;
+        }
+        .sidebar-nav {
+            padding: 9px 0;
+        }
+
+        @media (max-width: 980px) {
+            /* Enable use of floated navbar text */
+            .navbar-text.pull-right {
+                float: none;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        }
+
+
+    </style>
+    <script type="text/javascript">
+    $(function () {       
+		$('#backid').click(function(){
+				window.location.href="index.html";
+		 });
+    });
+    </script>
+</head>
+<body>
+<form id="myForm" class="definewidth m20">
+<table class="table table-bordered table-hover definewidth m10">
+    <tr>
+        <td width="10%" class="tableleft">姓名</td>
+        <td><input type="text" name="d_name" value=""/></td>
+    </tr>
+    
+    <tr>
+        <td width="10%" class="tableleft">身份证号</td>
+        <td><input type="text" name="d_idCard" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">手机</td>
+        <td><input type="text" name="d_phone" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">座机</td>
+        <td><input type="text" name="d_telphone" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">性别</td>
+        <td><input type="radio" name="d_sex" value="1"/>男&nbsp;&nbsp;&nbsp;<input type="radio" name="d_sex" value="0"/>女</td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">出生年月</td>
+        <td><input type="date" name="d_birthday" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">电子邮箱</td>
+        <td><input type="text" name="d_email" value=""/></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">所属科室</td>
+        <td><select name="k_id" id="keshi"></select></td>
+    </tr>
+    <tr>
+        <td width="10%" class="tableleft">学历</td>
+        <td><select name="x_id" id="xueli"></select></td>
+    </tr>
+	<tr>
+        <td width="10%" class="tableleft">备注</td>
+        <td><textarea name="d_desc"></textarea></td>
+	</tr>
+    <tr>
+        <td colspan="2">
+			<center>
+				<button type="button" class="btn btn-primary" id="submit-btn">保存</button> &nbsp;&nbsp;<button type="button" class="btn btn-success" name="backid" id="backid">返回列表</button>
+			</center>
+		</td>
+    </tr>
+</table>
+</form>
+<script>
+    var xuelilist = queryXueli();
+    var keshilist = queryKeshi();
+    $(function () {
+        $("#submit-btn").click(function (){addDoctor();});
+        $("input[name='d_idCard']").blur(function () {
+            get_baseinfo();
+        });
+    });
+
+    // 查询科室
+    function queryKeshi(){
+        $.ajax({
+            type: "GET",
+            url: "/keshi/all",
+            dataType:"json",
+            success: function(vo) {
+                if(vo.status == 200){
+                    var list = vo.list;
+                    var str="<option value='-1' selected='selected'>请选择</option>";
+                    for (var i = 0; i < list.length; i++) {
+                        str+=" <option value='"+list[i].k_id+"'>"+list[i].keshi_name+"</option>";
+                    }
+                    $("select[name='k_id']").html(str);
+                }
+            }
+
+        });
+    }
+    //查询全部学历
+    function queryXueli(){
+        $.ajax({
+            type: "GET",
+            url: "/xueli/all",
+            dataType:"json",
+            success: function(vo) {
+                if(vo.status == 200){
+                    var list = vo.list;
+                    var str="<option value='-1' selected='selected'>请选择</option>";
+                    for (var i = 0; i < list.length; i++) {
+                        str+=" <option value='"+list[i].x_id+"'>"+list[i].x_name+"</option>";
+                    }
+                    $("select[name='x_id']").html(str);
+                }
+            }
+
+        });
+    }
+    //提交医生信息
+    function addDoctor(){
+        if (check()){
+            var keshi = $("#keshi option:selected").val(); //获取已选中的option的value
+            var xueli = $("#xueli option:selected").val(); //获取已选中的option的value
+            $.ajax({
+                type: "POST",
+                url: "/doctor?k_id="+keshi+"&x_id="+xueli,
+                data:$("#myForm").serialize(),
+                dataType:"json",
+                success: function(vo) {
+                    if(vo.status == 200){
+                        alert("医生信息已录入！");
+                    }else{
+                        alert(vo.msg);
+                    }
+                }
+
+            });
+        }else{
+
+        }
+
+    }
+    //表单项校验
+    function check(){
+        var  dName= $("input[name='d_name']").val(); //姓名
+        if (dName.length==0){
+            alert("请填写姓名");
+            return false;
+        }else{
+            // 姓名的非空验证以及字符数量不能小于2以及大于5
+            var patt = /^[\u4e00-\u9fa5]{2,5}$/; //判断是否是2-5个汉字
+            if (!patt.test(dName)){
+                alert("姓名格式错误，应为2-5个汉字");
+                return false;
+            }
+        }
+
+        var  d_idCard= $("input[name='d_idCard']").val();//身份证号
+        if (d_idCard.length==0){
+            alert("请填写身份证号");
+            return false;
+        }else{
+            // 身份证号的正规合法验证
+            var patt = /^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{4}$/;
+            if(!patt.test(d_idCard) || get_baseinfo()<=18 || get_baseinfo() >=100){
+                alert("身份证号码输入错误,格式或年龄有误");
+                return false;
+            }
+        }
+
+
+        var  d_phone= $("input[name='d_phone']").val();//联系电话
+        if (d_phone.length==0){
+            alert("请填写手机号码");
+            return false;
+        }else{
+            // 正规电话号码的验证
+            var patt= /^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/;
+            if(!patt.test(d_phone)){
+                alert("请正确填写手机号码");
+                return false;
+            }
+        }
+
+        var  d_telphone= $("input[name='d_telphone']").val();//联系电话
+        if (d_telphone.length==0){
+            alert("请填写手机号码");
+            return false;
+        }else{
+            // 正规电话号码的验证
+            var patt1= /^(\(\d{3,4}-)|(\d{3.4}-)?\d{7,8}$/; // 举例XXXX-XXXXXXXX
+            var patt2 = /\d{3}-\d{8}|\d{4}-\d{7}/;//举例 021-87888822 0511-4405222
+            if(!patt1.test(d_telphone) && !patt2.test(d_telphone)){ //如果两个条件都不满足
+                alert("请正确填写座机号码");
+                return false;
+            }
+        }
+
+
+        var  dBirthday= $("input[name='d_birthday']").val();//出生年月日
+        if (dBirthday.length==0){
+            alert("请填写出生年月日");
+            return false;
+        }
+
+        var email = $("input[name='d_email']").val();
+        if (email.length==0){
+            alert("请输入email");
+            return false;
+        }else{
+            var patt= /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+            if(!patt.test(email)){
+                alert("邮箱格式不正确");
+                return false;
+            }
+        }
+
+        var  keshi= $("#keshi").val();//科室
+        if (keshi==-1 || keshi=="" || keshi.length==0){
+            alert("请选择科室");
+            return false;
+        }
+        var  xueli= $("#xueli").val();//医生
+        if (xueli==-1 || xueli=="" || xueli.length==0){
+            alert("请选择学历");
+            return false;
+        }
+        return true;
+    }
+
+    //根据输入的身份证号，自动获取出生年月以及性别
+    function get_baseinfo() {
+        var didCard = $("input[name='d_idCard']").val();
+        if (didCard == '' || didCard.length != 18) {
+            alert('请输入18位正确身份证号');
+        }
+        var date = new Date();
+        var year = date.getFullYear();
+        var month = date.getMonth();
+        var day = date.getDay();
+        var birthday_year = parseInt(didCard.substr(6, 4));
+        var birthday_month = parseInt(didCard.substr(10, 2));
+        if (birthday_month>0&&birthday_month<10) birthday_month = "0"+birthday_month;
+        var birthday_day = parseInt(didCard.substr(12, 2));
+        if (birthday_day>0&&birthday_day<10) birthday_day = "0"+birthday_day;
+        var sex = parseInt(didCard.substr(16, 1));
+        var birth = ""+birthday_year+"-"+birthday_month+"-"+birthday_day;
+        $("input[name='d_birthday']").attr("value",birth);
+
+        if (sex % 2 == 0){ //偶数女
+            $("input[name='d_sex']:last").prop('checked',true);
+            $("input[name='d_sex']:first").prop('checked',false);
+        } //奇数 男
+        if (sex % 2 == 1){ //偶数女
+            $("input[name='d_sex']:first").prop('checked',true);
+            $("input[name='d_sex']:last").prop('checked',false);
+        }
+        var userage= year - birthday_year -1;
+        if (birthday_month-month<0){ //生日月份小于当前月份，年纪+1
+            userage++;
+        }
+        if (birthday_month-month==0){
+            if (birthday_day-day<0){ //在月份相同的情况下，如果生日的日子小于当前日子，年纪+1
+                userage++;
+            }
+            if(birthday_day-day==0){ //日子相同，年纪+1
+                userage++;
+            }
+        }
+        if (birthday_month!="00" && birthday_day == "00" ) return 0;
+        if(birthday_month=="00") return 0;
+        if(birthday_day=="00") return 0;
+        return userage;
+
+    }
+</script>
+</body>
+</html>
